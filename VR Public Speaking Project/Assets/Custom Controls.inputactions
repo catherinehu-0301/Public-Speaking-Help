@@ -1,0 +1,84 @@
+{
+    "name": "Custom Controls",
+    "maps": [
+        {
+            "name": "NextCard",
+            "id": "a801aa37-ba96-4f9d-9571-604c86282d4b",
+            "actions": [
+                {
+                    "name": "New action",
+                    "type": "Button",
+                    "id": "9c41ebb5-4923-4bc6-b6dc-1b87775e390a",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "c1b7861d-08b0-43a6-8a33-7997da36329a",
+                    "path": "<AndroidGamepad>/buttonEast",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "New action",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a721029b-6f3b-4107-8b17-f48c5989ef8d",
+                    "path": "<AndroidGamepad>/buttonNorth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "New action",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "PreviousCard",
+            "id": "7c0cb0cb-4be1-42c1-9ff1-fc96ca2ad1e5",
+            "actions": [
+                {
+                    "name": "New action",
+                    "type": "Button",
+                    "id": "7f6c0b64-958b-4080-a26b-910e1c982eb7",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "e197130f-342e-4a4d-abe4-e79cf62e7e0d",
+                    "path": "<AndroidGamepad>/buttonWest",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "New action",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d4a0d223-7f23-4300-8cac-bf4384d2f99e",
+                    "path": "<AndroidGamepad>/buttonSouth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "New action",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
