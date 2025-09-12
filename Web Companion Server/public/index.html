@@ -3,9 +3,9 @@
 <html lang="en">
 <head>
     <meta charset = "utf-8">
-    <title>MemorizeIT</title>
+    <title>StageNotes</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style></style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <aside>
@@ -13,5 +13,79 @@
         <div id="sets" class="sets-list"></div>
         <button id="newSetBtn">+ New Set</button>
     </aside>
+    <main>
+        <div class="top">
+            <div class="title-label">Set Title</div>
+            <input id="setTitle" class="title-input" type="text" placeholder="Enter set title here">
+            <div class="card-meta">Card : <span id="cardIndex">1</span>/<span id="cardTotal">1</span></div>
+            <button id="addCard" class="btn green">
+                + New Card
+            </button>
+            <button id="deleteCard" class="btn red">
+                X Delete Card
+            </button>
+        </div>
+        <div class="grid">
+            <button id="prevCard" class="btn nav">
+                &lt; <span class="prevTooltip">Previous Card</span>
+            </button>
+
+            <div>
+                <div class="field">
+                    <div class="label">Front Text</div>
+                    <div class="editor-wrap">
+                        <div id="front" class="editor" contenteditable="true"></div>
+                        <div class="toolbar">
+                            <button class="tool" data-cmd="decreaseFontSize">-</button>
+                            <button class="tool" data-cmd="increaseFontSize">+</button>
+                            <button class="tool" data-cmd="bold">B</button>
+                            <button class="tool" data-cmd="italic"><i>I</i></button>
+                            <button class="tool" data-cmd="underline"><u>U</u></button>
+                            <button class="tool" data-cmd="foreColor" data-value="#111">A</button>
+                            <button class="tool" data-cmd="createLink">🔗</button>
+                            <button class="tool" data-cmd="insertUnorderedList">• List</button>
+                            <button class="tool" data-cmd="insertOrderedList">1. List</button>
+                            <button class="tool" data-cmd="justifyLeft">⟸</button>
+                            <button class="tool" data-cmd="justifyCenter">≡</button>
+                            <button class="tool" data-cmd="justifyRight">⟹</button>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="label">Back Text</div>
+                    <div class="editor-wrap">
+                        <div id="back" class="editor" contenteditable="true"></div>
+                        <div class="toolbar">
+                            <button class="tool" data-cmd="decreaseFontSize">-</button>
+                            <button class="tool" data-cmd="increaseFontSize">+</button>
+                            <button class="tool" data-cmd="bold">B</button>
+                            <button class="tool" data-cmd="italic"><i>I</i></button>
+                            <button class="tool" data-cmd="underline"><u>U</u></button>
+                            <button class="tool" data-cmd="foreColor" data-value="#111">A</button>
+                            <button class="tool" data-cmd="createLink">🔗</button>
+                            <button class="tool" data-cmd="insertUnorderedList">• List</button>
+                            <button class="tool" data-cmd="insertOrderedList">1. List</button>
+                            <button class="tool" data-cmd="justifyLeft">⟸</button>
+                            <button class="tool" data-cmd="justifyCenter">≡</button>
+                            <button class="tool" data-cmd="justifyRight">⟹</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bottom">
+                    <button id="saveBtn" class="btn save">Save</button>
+                    <button id="deleteSetBtn" class="btn red">X Delete Set</button>
+                </div>
+            </div>
+
+            <button id="nextCard" class="btn nav">
+                &gt; <span class="nextTooltip">Next Card</span>
+            </button>
+                 
+            </div>
+        </div>
+    </main>
 </body>
 </html>

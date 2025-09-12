@@ -1,0 +1,69 @@
+:root{
+  --bg:#f6f7f8; --panel:#fff; --muted:#eceff2;
+  --text:#1f1f1f; --subtle:#6b6f75; --stroke:#cfd6dc;
+  --greenBg:#e6f4ea; --greenStroke:#7fb389;
+  --redBg:#f7d9dd; --redStroke:#c06a72;
+  --blueBg:#dbe7fb;
+  --radius:12px; --shadow:0 2px 6px rgba(0,0,0,.06);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.wrap {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  height: 100vh;
+}
+
+aside {
+  background: #e9ecef;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+main {
+  padding: 20px;
+  overflow: auto;
+}
+
+.sets-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+#newSetBtn {
+  background: #7fb389;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.btn.red {
+    background-color: rgb(242, 172, 172);
+}
+
+#prevCard {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black;
+}
+
+#prevCard .prevTooltip {
+  visibility: hidden;
+  width: 120px;
+  background-color: rgb(122, 114, 114);
+  color: #fff;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+}
+
+#prevCard:hover .prevTooltip {
+  visibility: visible;
+}
