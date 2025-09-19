@@ -23,7 +23,7 @@
                     + New Card
                 </button>
                 <button id="deleteCard" class="btn red">
-                    X Delete Card
+                    ✕ Delete Card
                 </button>
             </div>
             <div class="grid">
@@ -36,8 +36,9 @@
                         <div class="label">Front Text</div>
                         <div class="editor-wrap">
                             <div id="front" class="editor" contenteditable="true"></div>
-                            <div class="toolbar">
+                            <div class="toolbar" id="frontToolbar">
                                 <button class="tool" data-cmd="decreaseFontSize">-</button>
+                                <input type="number" id="fontSizeInput" class="font-size-input" value="12" min="5" max="100" />
                                 <button class="tool" data-cmd="increaseFontSize">+</button>
                                 <button class="tool" data-cmd="bold">B</button>
                                 <button class="tool" data-cmd="italic"><i>I</i></button>
@@ -50,7 +51,6 @@
                                 <button class="tool" data-cmd="justifyCenter">≡</button>
                                 <button class="tool" data-cmd="justifyRight">⟹</button>
                             </div>
-                        </div>
                         </div>
                     </div>
 
@@ -58,8 +58,9 @@
                         <div class="label">Back Text</div>
                         <div class="editor-wrap">
                             <div id="back" class="editor" contenteditable="true"></div>
-                            <div class="toolbar">
+                            <div class="toolbar" id="backToolbar">
                                 <button class="tool" data-cmd="decreaseFontSize">-</button>
+                                <input type="number" id="fontSizeInput" class="font-size-input" value="12" min="5" max="100" />
                                 <button class="tool" data-cmd="increaseFontSize">+</button>
                                 <button class="tool" data-cmd="bold">B</button>
                                 <button class="tool" data-cmd="italic"><i>I</i></button>
@@ -74,21 +75,26 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="bottom">
-                        <button id="saveBtn" class="btn save">Save</button>
-                        <button id="deleteSetBtn" class="btn red">X Delete Set</button>
-                    </div>
                 </div>
 
                 <button id="nextCard" class="btn nav">
                     &gt; <span class="nextTooltip">Next Card</span>
                 </button>
+
+                <div></div>
+
+                <div class="bottom">
+                    <button id="saveBtn" class="btn save">Save Set</button>
+                    <button id="deleteSetBtn" class="btn red">✕ Delete Set</button>
+                </div>
+                </div>
+
+                
                     
                 </div>
             </div>
         </main>
     </div>
-    
+    <script src="script.js"></script>
 </body>
 </html>

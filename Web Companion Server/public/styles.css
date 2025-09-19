@@ -2,7 +2,7 @@
   --bg:#f6f7f8; --panel:#fff; --muted:#eceff2;
   --text:#1f1f1f; --subtle:#6b6f75; --stroke:#cfd6dc;
   --greenBg:#e6f4ea; --greenStroke:#7fb389;
-  --redBg:#f7d9dd; --redStroke:#c06a72;
+  --redBg:#f4ccccff; --redStroke:#f4ccccff;
   --blueBg:#dbe7fb;
   --radius:12px; --shadow:0 2px 6px rgba(0,0,0,.06);
 }
@@ -33,31 +33,63 @@ main {
 }
 
 .sets-title {
-  font-size: 18px;
+  font-size: 27px;
   font-weight: bold;
   margin-bottom: 10px;
+  text-align: center;
 }
 
 #newSetBtn {
-  background: #7fb389;
+  background: #d9ead3ff;
   padding: 10px;
   border-radius: 8px;
+  cursor: pointer;
+  margin-top: auto;
+}
+
+.top {
+  display:flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.top input {
+  flex: 1;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.btn {
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.btn.green {
+  background-color: #d9ead3ff;
+  width: 120px;
 }
 
 .btn.red {
-    background-color: rgb(242, 172, 172);
+    background-color: #f4ccccff;
+    width: 120px;
+}
+
+.btn.save {
+  background-color: #cfe2f3ff;
+  width: 120px;
 }
 
 #prevCard {
   position: relative;
   display: inline-block;
-  border-bottom: 1px dotted black;
+  height: 40px;
 }
 
 #prevCard .prevTooltip {
   visibility: hidden;
   width: 120px;
-  background-color: rgb(122, 114, 114);
+  background-color: rgb(181, 183, 183);
   color: #fff;
   position: absolute;
   z-index: 1;
@@ -66,4 +98,80 @@ main {
 
 #prevCard:hover .prevTooltip {
   visibility: visible;
+}
+
+#nextCard {
+  position: relative;
+  display: inline-block;
+  height: 40px;
+}
+
+#nextCard .nextTooltip {
+  visibility: hidden;
+  width: 120px;
+  background-color: rgb(183, 181, 181);
+  color: #fff;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  right: 40px;
+}
+
+#nextCard:hover .nextTooltip {
+  visibility: visible;
+}
+
+
+.grid {
+  display: grid;
+  grid-template-columns: 45px 1fr 45px;
+  gap: 20px;
+  align-items: center;
+}
+
+.field {
+  margin-bottom: 20px;
+}
+
+.label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.editor-wrap {
+  display: flex;
+  gap: 10px;
+}
+
+.editor {
+  flex: 1;
+  border: 1px solid #000;
+  background: #eeeeeeff;
+  border-radius: 10px;
+  min-height: 80px;
+  padding: 10px;
+}
+
+.toolbar {
+  display: flex;
+  height: 25px;
+  /* flex-wrap: wrap; */
+  gap: 5px !important;
+}
+
+.tool {
+  cursor: pointer;
+
+}
+
+.font-size-input {
+  width: 30px;
+  text-align: center;
+}
+
+
+.bottom {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
 }
