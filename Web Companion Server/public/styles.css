@@ -80,13 +80,13 @@ main {
   width: 120px;
 }
 
-#prevCard {
+#prevCardBtn {
   position: relative;
   display: inline-block;
   height: 40px;
 }
 
-#prevCard .prevTooltip {
+#prevCardBtn .prevTooltip {
   visibility: hidden;
   width: 120px;
   background-color: rgb(181, 183, 183);
@@ -96,17 +96,17 @@ main {
   bottom: 125%;
 }
 
-#prevCard:hover .prevTooltip {
+#prevCardBtn:hover .prevTooltip {
   visibility: visible;
 }
 
-#nextCard {
+#nextCardBtn {
   position: relative;
   display: inline-block;
   height: 40px;
 }
 
-#nextCard .nextTooltip {
+#nextCardBtn .nextTooltip {
   visibility: hidden;
   width: 120px;
   background-color: rgb(183, 181, 181);
@@ -117,7 +117,7 @@ main {
   right: 40px;
 }
 
-#nextCard:hover .nextTooltip {
+#nextCardBtn:hover .nextTooltip {
   visibility: visible;
 }
 
@@ -150,6 +150,7 @@ main {
   border-radius: 10px;
   min-height: 80px;
   padding: 10px;
+  font-size: 12px;
 }
 
 .toolbar {
