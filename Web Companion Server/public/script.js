@@ -27,6 +27,8 @@ let currentCardIdx = 0;
 let currentSet = [
     { front: '', back: '' }
 ];
+let currentSetId = null;
+let savedSets = [];
 
 // Front Toolbar Logic'
 let frontFontSize = 12;
@@ -220,3 +222,165 @@ elements.saveSetBtn.addEventListener('click', () => {
     }
     
 });
+
+
+// API functions
+async function loadSets() {
+    try {
+        const response = await fetch('/api/sets');
+        const data = await response.json();
+        return data.sets;
+    } catch (error) {
+        console.error('Error loading sets:', error);
+        return [];
+    }
+}
+
+async function saveSet(name, cards) {
+    try {
+        const response = await fetch('/api/sets', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, cards })
+        });
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error saving set:', error);
+        return { ok: false, error: error.message };
+    }
+}
+
+async function updateSet(id, name, cards) {
+    try {
+        const response = await fetch(`/api/sets/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, cards })
+        });
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error updating set:', error);
+        return { ok: false, error: error.message };
+    }
+}
+
+async function deleteSet(id) {
+    try {
+        const response = await fetch(`/api/sets/${id}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error deleting set:', error);
+        return { ok: false, error: error.message };
+    }
+}
+
+
+// Initial load
+async function initializePage() {
+    savedSets = await loadSets();
+    updateSetDisplay();
+    updateCardDisplay();
+}
+
+function updateSetDisplay() {
+    const setsContainer = elements.sets;
+    setsContainer.innerHTML = '';
+    savedSets.forEach(set => {
+        const button = document.createElement('button');
+        button.classList.add('set');
+        button.textContent = set.name;
+        button.dataset.id = set.id;
+        button.addEventListener('click', () => loadSet(set.id));
+
+        if (set.id === currentSetId) {
+            button.classList.add('active');
+        }
+
+        setsContainer.appendChild(button);
+    });
+}
+
+function loadSet(setId) {
+    const selectedSet = savedSets.find(s => s.id === setId);
+    if (selectedSet) {
+        currentSetId = selectedSet.id;
+        currentSetTitle = selectedSet.name;
+        currentSet = selectedSet.cards.length > 0 ? selectedSet.cards : [{ front: '', back: '' }];
+        currentCardIdx = 0;
+        elements.setTitle.value = currentSetTitle;
+        updateSetDisplay();
+        updateCardDisplay();
+    }
+}
+
+elements.saveSetBtn.addEventListener('click', async () => {
+    let title = elements.setTitle.value.trim();
+    if (!title) {
+        title = 'Untitled Set';
+    }
+    let result;
+    if (currentSetId) {
+        result = await updateSet(currentSetId, title, currentSet);
+    } else {
+        alert('Please select a set to save changes.');
+    }
+
+    if (result.ok) {
+        currentSetTitle = title;
+        savedSets = await loadSets();
+        updateSetDisplay();
+        alert('Set saved successfully!');
+    } else {
+        alert('Error saving set: ' + result.error);
+    }
+});
+
+
+elements.deleteSetBtn.addEventListener('click', async () => {
+    if (currentSetId) {
+        const confirmDelete = confirm('Are you sure you want to delete this set? This action cannot be undone.');
+        if (confirmDelete) {
+            const result = await deleteSet(currentSetId);
+            if (result.ok) {
+                currentSetId = null;
+                currentSetTitle = '';
+                currentSet = [{ front: '', back: '' }];
+                currentCardIdx = 0;
+                elements.setTitle.value = '';
+                savedSets = await loadSets();
+                updateSetDisplay();
+                updateCardDisplay();
+                alert('Set deleted successfully!');
+            } else {
+                alert('Error deleting set: ' + result.error);
+            }
+        }
+    } else {
+        alert('No set selected to delete.');
+    }
+});
+
+elements.newSetBtn.addEventListener('click', () => {
+    if (currentSetId && confirm("Create a new set? Any unsaved changes will be lost.")) {
+        currentSetId = null;
+        currentSetTitle = '';
+        currentSet = [{ front: '', back: '' }];
+        currentCardIdx = 0;
+        elements.setTitle.value = '';
+        updateSetDisplay();
+        updateCardDisplay();
+    }
+
+    // Create a new set that can be shown on the list
+    const newSet = { id: Date.now(), name: currentSetTitle, cards: currentSet };
+    savedSets.push(newSet);
+    updateSetDisplay();
+});
+
+document.addEventListener('DOMContentLoaded', initializePage);
