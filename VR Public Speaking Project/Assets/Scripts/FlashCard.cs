@@ -17,7 +17,7 @@ public class FlashCard : MonoBehaviour
 
     public TextMeshProUGUI cardText;
 
-    public List<string> cards = new List<string>();
+    public List<Dictionary<string, string>> cards = new List<Dictionary<string, string>>(); // TODO: change to Dictionaries for front and back
     //  0       1       2
     // ["asdf", "food", "piano"];
     int currentCardIndex = 0;
@@ -43,16 +43,25 @@ public class FlashCard : MonoBehaviour
       previousCardAction.action.Disable();
     }
 
+    public void ResetCards()
+    {
+      currentCardIndex = 0;
+      if (cards.Count > 0)
+      {
+        cardText.text = cards[currentCardIndex]["front"];
+      }
+    }
+
     void OnNextCard(InputAction.CallbackContext context)
     {
       NextCard();
-      cardText.text = cards[currentCardIndex];
+      cardText.text = cards[currentCardIndex]["front"];
     }
 
     void OnPreviousCard(InputAction.CallbackContext context)
     {
       PreviousCard();
-      cardText.text = cards[currentCardIndex];
+      cardText.text = cards[currentCardIndex]["front"];
     }
 
     void PreviousCard()
@@ -79,7 +88,7 @@ public class FlashCard : MonoBehaviour
     {
         if (cards.Count > 0)
         {
-          cardText.text = cards[currentCardIndex];
+          cardText.text = cards[currentCardIndex]["front"];
         }
     }
 
