@@ -1,13 +1,17 @@
 using UnityEngine;
+using UnityEngine.UI;
+using System.Collections;
 
 public class Settings : MonoBehaviour
 {
     public GameObject audience;
+    public Slider crowdDensitySlider;
+    public Slider crowdVolumeSlider;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        crowdDensitySlider.onValueChanged.AddListener(SetAudience);
     }
 
     // Update is called once per frame
@@ -16,8 +20,17 @@ public class Settings : MonoBehaviour
         
     }
 
-    public void SetAudience()
+    public void SetAudience(float value)
     {
         // Based off slider set that percent of audience members active
+        int audienceCount = audience.transform.childCount;
+        int activeCount = Mathf.RoundToInt(audienceCount * value);
+
+        // Randomly activate audience members
+        for (int i = 0; i < audienceCount; i++)
+        {
+            bool shouldActivate = Random.Range(0, audienceCount) < activeCount;
+            audience.transform.GetChild(i).gameObject.SetActive(shouldActivate);
+        }
     }
 }
