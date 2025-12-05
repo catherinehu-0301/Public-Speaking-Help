@@ -7,11 +7,13 @@ public class Settings : MonoBehaviour
     public GameObject audience;
     public Slider crowdDensitySlider;
     public Slider crowdVolumeSlider;
+    public AudioSource crowdAudioSource;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         crowdDensitySlider.onValueChanged.AddListener(SetAudience);
+        crowdVolumeSlider.onValueChanged.AddListener(SetCrowdVolume);
     }
 
     // Update is called once per frame
@@ -32,5 +34,10 @@ public class Settings : MonoBehaviour
             bool shouldActivate = Random.Range(0, audienceCount) < activeCount;
             audience.transform.GetChild(i).gameObject.SetActive(shouldActivate);
         }
+    }
+
+    public void SetCrowdVolume(float value)
+    {
+        crowdAudioSource.volume = value;
     }
 }

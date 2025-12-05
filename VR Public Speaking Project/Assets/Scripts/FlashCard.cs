@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections;
 using TMPro; 
 using UnityEngine.InputSystem; // New Input System
+using UnityEngine.XR;
 
 public class FlashCard : MonoBehaviour
 {
@@ -24,6 +25,18 @@ public class FlashCard : MonoBehaviour
 
     public InputActionReference nextCardAction;
     public InputActionReference previousCardAction;
+
+    public Transform flashCardRespawn;
+
+
+    public System.Action OnSwipeLeft;
+    public System.Action OnSwipeRight;
+
+    public float minSwipeDistance = 0.15f;
+
+    private bool _isSwiping = false;
+    private Vector3 _initialSwipePosition;
+
 
     void OnEnable()
     {
@@ -93,18 +106,43 @@ public class FlashCard : MonoBehaviour
     }
 
     // Update is called once per frame
-    // void Update()
-    // {
-    //     // VR controller input Y and B buttons
-    //     if (Input.GetKeyDown(KeyCode.Y) || Input.GetKeyDown(KeyCode.B))
-    //     {
-    //       NextCard();
-    //       cardText.text = cards[currentCardIndex];
-    //     }
-    //     if (Input.GetKeyDown(KeyCode.X) || Input.GetKeyDown(KeyCode.A))
-    //     {
-    //       PreviousCard();
-    //       cardText.text = cards[currentCardIndex];
-    //     }
-    // }
+    void Update()
+    {
+        // VR controller hands only
+        /* UX description:
+          - User holds the card in one hand
+          - User swipes left and right with their index finger to go to next/previous card
+          - Ambidextrous: either hand can be used to swipe
+        */
+
+
+        // OLD: delete later
+        // if (Input.GetKeyDown(KeyCode.Y) || Input.GetKeyDown(KeyCode.B))
+        // {
+        //   NextCard();
+        //   cardText.text = cards[currentCardIndex];
+        // }
+        // if (Input.GetKeyDown(KeyCode.X) || Input.GetKeyDown(KeyCode.A))
+        // {
+        //   PreviousCard();
+        //   cardText.text = cards[currentCardIndex];
+        // }
+    }
+
+
+
+    // Check if we exited a trigger collider
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.CompareTag("FlashCardZone")) {
+          // Respawn the flashcard at the position
+          this.transform.position = flashCardRespawn.position;
+          this.transform.rotation = flashCardRespawn.rotation;
+
+          // Reset valocity too
+          Rigidbody rb = this.GetComponent<Rigidbody>();
+          rb.linearVelocity = Vector3.zero;
+          rb.angularVelocity = Vector3.zero;
+        }
+    }
 }
