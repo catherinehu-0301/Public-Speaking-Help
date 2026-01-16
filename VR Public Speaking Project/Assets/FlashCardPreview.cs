@@ -27,6 +27,8 @@ public class FlashCardPreview : MonoBehaviour
     public GameObject setList;
     public GameObject settings;
 
+    public GameObject previewCardPrefab;
+
     public void ConfirmFlashCards()
     {
         flashCards.cards = flashcards;
@@ -36,6 +38,16 @@ public class FlashCardPreview : MonoBehaviour
         setList.SetActive(false);
         settings.SetActive(false);
         this.gameObject.SetActive(false);
+    }
+
+    public void UpdateCardPreview()
+    {
+        foreach(Dictionary<string, string> card in flashcards)
+        {
+            GameObject previewCard = Instantiate(previewCardPrefab, this.transform);
+            previewCard.GetComponent<CardFlip>().frontText = card["front"];
+            previewCard.GetComponent<CardFlip>().backText = card["back"];
+        }
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created

@@ -1,34 +1,38 @@
 using UnityEngine;
+using TMPro;
 
 public class CardFlip : MonoBehaviour
 {
     Transform card;
     public float flipSpeed = 5f;
+
+    private bool isFlipped = false;
+    private Quaternion targetRotation;
+
+    public TextMeshProUGUI frontText;
+    public TextMeshProUGUI backText;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        card = this.transform;
+        targetRotation = card.localRotation;
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        card.localRotation = Quaternion.Slerp(card.localRotation, targetRotation, Time.deltaTime * flipSpeed);
+
+        if (Quaternion.Angle(card.localRotation, targetRotation) < 0.1f)
+        {
+            card.localRotation = targetRotation;
+        }
     }
 
     public void FlipCard()
     {
-        // Rotate about the x-axis, 0 is front and 180 is back
-        Quaternion targetRotation;
-        if (card.rotation.x == 0)
-        {
-            targetRotation = Quaternion.Euler(180, 0, 0);
-        } 
-        else 
-        {
-            targetRotation = Quaternion.Euler(0, 0, 0);
-        }
-
-        card.rotation = Quaternion.Slerp(card.rotation, targetRotation, Time.deltaTime * flipSpeed);
+        isFlipped = !isFlipped;
+        targetRotation = Quaternion.Euler(isFlipped ? 180f : 0f, 0f, 0f);
     }
 }
