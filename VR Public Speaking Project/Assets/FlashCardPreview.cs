@@ -45,8 +45,8 @@ public class FlashCardPreview : MonoBehaviour
         foreach(Dictionary<string, string> card in flashcards)
         {
             GameObject previewCard = Instantiate(previewCardPrefab, this.transform);
-            previewCard.GetComponent<CardFlip>().frontText = card["front"];
-            previewCard.GetComponent<CardFlip>().backText = card["back"];
+            previewCard.GetComponent<CardFlip>().frontText.text = card["front"];
+            previewCard.GetComponent<CardFlip>().backText.text = card["back"];
         }
     }
 
