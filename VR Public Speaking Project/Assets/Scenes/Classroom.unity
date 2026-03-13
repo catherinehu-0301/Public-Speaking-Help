@@ -2306,8 +2306,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2df10518b5e427641aee3142f818e7b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  loadRemoteSetsOnStart: 1
+  useDemoSetWhenRemoteUnavailable: 1
+  autoApplyActiveRemoteSet: 1
+  pollForRemoteUpdates: 1
+  remoteRefreshIntervalSeconds: 5
+  autoDiscoverCompanionOnLan: 1
+  companionDiscoveryPort: 41234
+  companionDiscoveryTimeoutSeconds: 2
+  companionServerPort: 3000
+  companionVrSetsUrl: http://127.0.0.1:3000/api/vr/sets
+  requestTimeoutSeconds: 5
   setCardList: {fileID: 1239810948}
   setCardPrefab: {fileID: 7552179991468417812, guid: cb7ddfc96e631e348bb359219c3228f3, type: 3}
+  flashCardTarget: {fileID: 0}
+  flashCardPreview: {fileID: 0}
 --- !u!114 &226111509
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,8 +1,7 @@
 <!doctype html>
-
 <html lang="en">
 <head>
-    <meta charset = "utf-8">
+    <meta charset="utf-8">
     <title>StageNotes</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="styles.css">
@@ -12,39 +11,42 @@
         <aside>
             <div class="sets-title">SETS</div>
             <div id="sets" class="sets-list"></div>
-            <button id="newSetBtn">+ New Set</button>
+            <button id="newSetBtn" type="button">+ New Set</button>
         </aside>
         <main>
             <div class="top">
                 <div class="title-label">Set Title</div>
                 <input id="setTitle" class="title-input" type="text" placeholder="Enter set title here">
-                <div class="card-meta">Card : <span id="cardIndex">1</span>/<span id="cardTotal">1</span></div>
-                <button id="addCardBtn" class="btn green">
-                    + New Card
-                </button>
-                <button id="deleteCardBtn" class="btn red">
-                    ✕ Delete Card
-                </button>
+                <div class="card-meta">Card: <span id="cardIndex">1</span>/<span id="cardTotal">1</span></div>
+                <button id="addCardBtn" type="button" class="btn green">+ New Card</button>
+                <button id="deleteCardBtn" type="button" class="btn red">Delete Card</button>
             </div>
+
+            <div class="status-strip">
+                <div id="dirtyIndicator" class="status-pill" data-state="clean">All changes saved</div>
+                <div id="saveStatus" class="status-message" data-state="neutral" aria-live="polite"></div>
+                <div id="vrStatus" class="status-message" data-state="neutral" aria-live="polite"></div>
+            </div>
+
             <div class="grid">
-                <button id="prevCardBtn" class="btn nav">
+                <button id="prevCardBtn" type="button" class="btn nav">
                     &lt; <span class="prevTooltip">Previous Card</span>
                 </button>
 
-                <div>
+                <div class="editor-panel">
                     <div class="field">
                         <div class="label">Front Text</div>
                         <div class="editor-wrap">
                             <div id="front" class="editor" contenteditable="true"></div>
                             <div class="toolbar" id="frontToolbar">
                                 <button class="tool" data-cmd="decreaseFontSize">-</button>
-                                <input type="number" id="fontSizeInput" class="font-size-input" value="12" min="5" max="100" />
+                                <input type="number" class="font-size-input" value="12" min="5" max="100">
                                 <button class="tool" data-cmd="increaseFontSize">+</button>
                                 <button class="tool" data-cmd="bold">B</button>
                                 <button class="tool" data-cmd="italic"><i>I</i></button>
                                 <button class="tool" data-cmd="underline"><u>U</u></button>
-                                <button class="tool" data-cmd="foreColor" data-value="#111">A</button>
-                                <button class="tool" data-cmd="createLink">🔗</button>
+                                <button class="tool" data-cmd="foreColor" data-value="#111111">A</button>
+                                <button class="tool" data-cmd="createLink">Link</button>
                                 <button class="tool" data-cmd="insertUnorderedList">• List</button>
                                 <button class="tool" data-cmd="insertOrderedList">1. List</button>
                                 <button class="tool" data-cmd="justifyLeft">⟸</button>
@@ -60,13 +62,13 @@
                             <div id="back" class="editor" contenteditable="true"></div>
                             <div class="toolbar" id="backToolbar">
                                 <button class="tool" data-cmd="decreaseFontSize">-</button>
-                                <input type="number" id="fontSizeInput" class="font-size-input" value="12" min="5" max="100" />
+                                <input type="number" class="font-size-input" value="12" min="5" max="100">
                                 <button class="tool" data-cmd="increaseFontSize">+</button>
                                 <button class="tool" data-cmd="bold">B</button>
                                 <button class="tool" data-cmd="italic"><i>I</i></button>
                                 <button class="tool" data-cmd="underline"><u>U</u></button>
-                                <button class="tool" data-cmd="foreColor" data-value="#111">A</button>
-                                <button class="tool" data-cmd="createLink">🔗</button>
+                                <button class="tool" data-cmd="foreColor" data-value="#111111">A</button>
+                                <button class="tool" data-cmd="createLink">Link</button>
                                 <button class="tool" data-cmd="insertUnorderedList">• List</button>
                                 <button class="tool" data-cmd="insertOrderedList">1. List</button>
                                 <button class="tool" data-cmd="justifyLeft">⟸</button>
@@ -75,23 +77,21 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="bottom">
+                        <button id="saveSetBtn" type="button" class="btn save">Save Changes</button>
+                        <button id="sendToVrBtn" type="button" class="btn primary">Send To VR</button>
+                        <button id="deleteSetBtn" type="button" class="btn red">Delete Set</button>
+                    </div>
+
+                    <p class="vr-hint">
+                        VR export currently supports bold, italic, underline, color, alignment, lists, and links as display text.
+                    </p>
                 </div>
 
-                <button id="nextCardBtn" class="btn nav">
+                <button id="nextCardBtn" type="button" class="btn nav">
                     &gt; <span class="nextTooltip">Next Card</span>
                 </button>
-
-                <div></div>
-
-                <div class="bottom">
-                    <button id="saveSetBtn" class="btn save">Save Changes</button>
-                    <button id="deleteSetBtn" class="btn red">✕ Delete Set</button>
-                </div>
-                </div>
-
-                
-                    
-                </div>
             </div>
         </main>
     </div>

@@ -1,3 +1,5 @@
+const DEFAULT_FONT_SIZE = 12;
+
 const elements = {
     sets: document.getElementById('sets'),
     setTitle: document.getElementById('setTitle'),
@@ -10,13 +12,15 @@ const elements = {
     prevCardBtn: document.getElementById('prevCardBtn'),
     nextCardBtn: document.getElementById('nextCardBtn'),
     saveSetBtn: document.getElementById('saveSetBtn'),
+    sendToVrBtn: document.getElementById('sendToVrBtn'),
     deleteSetBtn: document.getElementById('deleteSetBtn'),
     newSetBtn: document.getElementById('newSetBtn'),
     frontToolbar: document.getElementById('frontToolbar'),
     backToolbar: document.getElementById('backToolbar'),
+    dirtyIndicator: document.getElementById('dirtyIndicator'),
+    saveStatus: document.getElementById('saveStatus'),
+    vrStatus: document.getElementById('vrStatus'),
 };
-
-const DEFAULT_FONT_SIZE = 12;
 
 const editorConfigs = {
     front: {
@@ -40,16 +44,37 @@ let currentCardIdx = 0;
 let currentSet = [createEmptyCard()];
 let currentSetId = null;
 let savedSets = [];
+let isDirty = false;
 
 function createEmptyCard() {
-    return { front: '', back: '' };
+    return {
+        front: '',
+        back: '',
+        frontFontSize: DEFAULT_FONT_SIZE,
+        backFontSize: DEFAULT_FONT_SIZE,
+    };
+}
+
+function fontSizeFieldName(field) {
+    return field === 'front' ? 'frontFontSize' : 'backFontSize';
 }
 
 function normalizeCard(card = {}) {
     return {
         front: typeof card.front === 'string' ? card.front : '',
         back: typeof card.back === 'string' ? card.back : '',
+        frontFontSize: clampFontSize(card.frontFontSize),
+        backFontSize: clampFontSize(card.backFontSize),
     };
+}
+
+function clampFontSize(value) {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isNaN(parsed)) {
+        return DEFAULT_FONT_SIZE;
+    }
+
+    return Math.min(100, Math.max(5, parsed));
 }
 
 function normalizeCards(cards) {
@@ -82,9 +107,47 @@ function ensureCurrentCard() {
     }
 }
 
+function setStatus(element, message, state = 'neutral') {
+    element.textContent = message;
+    element.dataset.state = state;
+}
+
+function markDirty() {
+    isDirty = true;
+    elements.dirtyIndicator.textContent = 'Unsaved changes';
+    elements.dirtyIndicator.dataset.state = 'dirty';
+    updateActionButtons();
+}
+
+function markClean() {
+    isDirty = false;
+    elements.dirtyIndicator.textContent = 'All changes saved';
+    elements.dirtyIndicator.dataset.state = 'clean';
+    updateActionButtons();
+}
+
+function setActiveEditorFontSize(field, nextFontSize, options = {}) {
+    const config = editorConfigs[field];
+    const clamped = clampFontSize(nextFontSize);
+
+    config.fontSize = clamped;
+    config.editor.style.fontSize = `${clamped}px`;
+    config.toolbar.querySelector('.font-size-input').value = clamped;
+
+    if (options.persist !== false) {
+        ensureCurrentCard();
+        currentSet[currentCardIdx][fontSizeFieldName(field)] = clamped;
+    }
+
+    if (options.markDirty) {
+        markDirty();
+    }
+}
+
 function syncField(field) {
     ensureCurrentCard();
     currentSet[currentCardIdx][field] = elements[field].innerHTML;
+    currentSet[currentCardIdx][fontSizeFieldName(field)] = editorConfigs[field].fontSize;
 }
 
 function syncCurrentCard() {
@@ -106,18 +169,48 @@ function currentDraftHasContent() {
     return currentSet.some((card) => stripHtml(card.front) || stripHtml(card.back));
 }
 
-function setActiveEditorFontSize(field, nextFontSize) {
-    const config = editorConfigs[field];
-    const parsed = Number.parseInt(nextFontSize, 10);
+function getCurrentSavedSet() {
+    return savedSets.find((set) => set.id === currentSetId) || null;
+}
 
-    if (Number.isNaN(parsed)) {
+function formatTimestamp(timestamp) {
+    if (!timestamp) {
+        return '';
+    }
+
+    try {
+        return new Date(timestamp).toLocaleString();
+    } catch {
+        return '';
+    }
+}
+
+function refreshVrStatus() {
+    const selectedSet = getCurrentSavedSet();
+
+    if (!selectedSet) {
+        setStatus(elements.vrStatus, 'Save a set before sending it to the VR app.', 'neutral');
         return;
     }
 
-    const clamped = Math.min(100, Math.max(5, parsed));
-    config.fontSize = clamped;
-    config.editor.style.fontSize = `${clamped}px`;
-    config.toolbar.querySelector('.font-size-input').value = clamped;
+    if (selectedSet.sentToVr) {
+        const formatted = formatTimestamp(selectedSet.lastSentToVr);
+        setStatus(
+            elements.vrStatus,
+            formatted
+                ? `Published to VR. Last sent ${formatted}.`
+                : 'Published to VR.',
+            'success'
+        );
+        return;
+    }
+
+    setStatus(elements.vrStatus, 'This set has not been sent to the VR app yet.', 'info');
+}
+
+function updateActionButtons() {
+    elements.deleteSetBtn.disabled = !currentSetId;
+    elements.sendToVrBtn.disabled = !currentSetId && !currentDraftHasContent();
 }
 
 function getSelectionRangeWithin(editor) {
@@ -175,6 +268,7 @@ function execEditorCommand(field, command, value = null) {
     document.execCommand(command, false, value);
     syncField(field);
     saveSelection(field);
+    markDirty();
 }
 
 function normalizeUrl(url) {
@@ -249,10 +343,10 @@ function handleToolbarAction(field, button) {
 
     switch (command) {
         case 'decreaseFontSize':
-            setActiveEditorFontSize(field, editorConfigs[field].fontSize - 1);
+            setActiveEditorFontSize(field, editorConfigs[field].fontSize - 1, { markDirty: true });
             return;
         case 'increaseFontSize':
-            setActiveEditorFontSize(field, editorConfigs[field].fontSize + 1);
+            setActiveEditorFontSize(field, editorConfigs[field].fontSize + 1, { markDirty: true });
             return;
         case 'createLink':
             handleCreateLink(field);
@@ -270,7 +364,7 @@ function setupEditor(field) {
     const toolbarButtons = config.toolbar.querySelectorAll('button.tool');
     const fontSizeInput = config.toolbar.querySelector('.font-size-input');
 
-    setActiveEditorFontSize(field, DEFAULT_FONT_SIZE);
+    setActiveEditorFontSize(field, DEFAULT_FONT_SIZE, { persist: false, markDirty: false });
 
     toolbarButtons.forEach((button) => {
         button.type = 'button';
@@ -289,7 +383,7 @@ function setupEditor(field) {
     });
 
     fontSizeInput.addEventListener('input', (event) => {
-        setActiveEditorFontSize(field, event.target.value);
+        setActiveEditorFontSize(field, event.target.value, { markDirty: true });
     });
 
     ['mouseup', 'keyup', 'focus'].forEach((eventName) => {
@@ -301,6 +395,7 @@ function setupEditor(field) {
     config.editor.addEventListener('input', () => {
         syncField(field);
         saveSelection(field);
+        markDirty();
     });
 }
 
@@ -311,8 +406,11 @@ function updateCardDisplay() {
     elements.setTitle.value = currentSetTitle;
     elements.front.innerHTML = currentSet[currentCardIdx].front;
     elements.back.innerHTML = currentSet[currentCardIdx].back;
+    setActiveEditorFontSize('front', currentSet[currentCardIdx].frontFontSize, { persist: false, markDirty: false });
+    setActiveEditorFontSize('back', currentSet[currentCardIdx].backFontSize, { persist: false, markDirty: false });
     editorConfigs.front.selection = null;
     editorConfigs.back.selection = null;
+    updateActionButtons();
 }
 
 function resetEditorState() {
@@ -320,29 +418,55 @@ function resetEditorState() {
     currentSetTitle = '';
     currentSet = [createEmptyCard()];
     currentCardIdx = 0;
+    markClean();
     updateSetDisplay();
     updateCardDisplay();
+    setStatus(elements.saveStatus, 'Started a new draft.', 'info');
+    refreshVrStatus();
+}
+
+function createSetButton(set) {
+    const button = document.createElement('button');
+    const name = document.createElement('span');
+
+    button.type = 'button';
+    button.classList.add('set-button');
+    name.classList.add('set-name');
+    name.textContent = set.name;
+    button.appendChild(name);
+
+    if (set.sentToVr) {
+        button.classList.add('is-published');
+        const badge = document.createElement('span');
+        badge.classList.add('set-badge');
+        badge.textContent = 'VR';
+        button.appendChild(badge);
+    }
+
+    if (set.id === currentSetId) {
+        button.classList.add('active');
+    }
+
+    button.addEventListener('click', () => {
+        loadSet(set.id);
+    });
+
+    return button;
 }
 
 function updateSetDisplay() {
     elements.sets.innerHTML = '';
 
+    if (savedSets.length === 0) {
+        const emptyState = document.createElement('div');
+        emptyState.classList.add('empty-state');
+        emptyState.textContent = 'No saved sets yet. Create one, save it, then publish it to VR.';
+        elements.sets.appendChild(emptyState);
+        return;
+    }
+
     savedSets.forEach((set) => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.classList.add('set-button');
-        button.textContent = set.name;
-        button.dataset.id = set.id;
-
-        if (set.id === currentSetId) {
-            button.classList.add('active');
-        }
-
-        button.addEventListener('click', () => {
-            loadSet(set.id);
-        });
-
-        elements.sets.appendChild(button);
+        elements.sets.appendChild(createSetButton(set));
     });
 }
 
@@ -356,8 +480,11 @@ function loadSet(setId) {
     currentSetTitle = selectedSet.name;
     currentSet = cloneCards(selectedSet.cards);
     currentCardIdx = 0;
+    markClean();
     updateSetDisplay();
     updateCardDisplay();
+    setStatus(elements.saveStatus, `Loaded "${selectedSet.name}".`, 'info');
+    refreshVrStatus();
 }
 
 async function loadSets() {
@@ -367,6 +494,7 @@ async function loadSets() {
         return Array.isArray(data.sets) ? data.sets : [];
     } catch (error) {
         console.error('Error loading sets:', error);
+        setStatus(elements.saveStatus, 'Could not load saved sets from the server.', 'error');
         return [];
     }
 }
@@ -379,8 +507,7 @@ async function createSet(name, cards) {
             body: JSON.stringify({ name, cards }),
         });
 
-        const data = await response.json();
-        return data;
+        return await response.json();
     } catch (error) {
         console.error('Error creating set:', error);
         return { ok: false, error: error.message };
@@ -395,8 +522,7 @@ async function updateSet(id, name, cards) {
             body: JSON.stringify({ name, cards }),
         });
 
-        const data = await response.json();
-        return data;
+        return await response.json();
     } catch (error) {
         console.error('Error updating set:', error);
         return { ok: false, error: error.message };
@@ -410,10 +536,23 @@ async function deleteSet(id) {
             headers: { 'Content-Type': 'application/json' },
         });
 
-        const data = await response.json();
-        return data;
+        return await response.json();
     } catch (error) {
         console.error('Error deleting set:', error);
+        return { ok: false, error: error.message };
+    }
+}
+
+async function publishSetToVr(id) {
+    try {
+        const response = await fetch(`/api/sets/${id}/send-to-vr`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error publishing set to VR:', error);
         return { ok: false, error: error.message };
     }
 }
@@ -423,21 +562,53 @@ async function refreshSets() {
     updateSetDisplay();
 }
 
+async function persistCurrentSet(options = {}) {
+    syncCurrentCard();
+
+    const title = elements.setTitle.value.trim() || 'Untitled Set';
+    const result = currentSetId
+        ? await updateSet(currentSetId, title, currentSet)
+        : await createSet(title, currentSet);
+
+    if (!result || !result.ok) {
+        setStatus(
+            elements.saveStatus,
+            `Save failed: ${result?.error || 'Unknown error.'}`,
+            'error'
+        );
+        return null;
+    }
+
+    await refreshSets();
+    loadSet(result.set.id);
+    markClean();
+
+    if (!options.silent) {
+        setStatus(elements.saveStatus, 'Changes saved.', 'success');
+    }
+
+    return result.set;
+}
+
 async function initializePage() {
     setupEditor('front');
     setupEditor('back');
 
     savedSets = await loadSets();
+    updateSetDisplay();
 
     if (savedSets.length > 0) {
         loadSet(savedSets[0].id);
     } else {
         resetEditorState();
     }
+
+    setStatus(elements.saveStatus, 'Dashboard ready.', 'info');
 }
 
 elements.setTitle.addEventListener('input', () => {
     currentSetTitle = elements.setTitle.value;
+    markDirty();
 });
 
 elements.addCardBtn.addEventListener('click', () => {
@@ -445,6 +616,7 @@ elements.addCardBtn.addEventListener('click', () => {
     currentSet.push(createEmptyCard());
     currentCardIdx = currentSet.length - 1;
     updateCardDisplay();
+    markDirty();
 });
 
 elements.deleteCardBtn.addEventListener('click', () => {
@@ -454,6 +626,7 @@ elements.deleteCardBtn.addEventListener('click', () => {
         currentSet = [createEmptyCard()];
         currentCardIdx = 0;
         updateCardDisplay();
+        markDirty();
         return;
     }
 
@@ -464,6 +637,7 @@ elements.deleteCardBtn.addEventListener('click', () => {
     }
 
     updateCardDisplay();
+    markDirty();
 });
 
 elements.prevCardBtn.addEventListener('click', () => {
@@ -489,7 +663,7 @@ elements.nextCardBtn.addEventListener('click', () => {
 elements.newSetBtn.addEventListener('click', () => {
     syncCurrentCard();
 
-    if (currentDraftHasContent()) {
+    if (isDirty && currentDraftHasContent()) {
         const confirmed = window.confirm(
             'Start a new set? Any unsaved changes in the current editor will be lost.'
         );
@@ -503,30 +677,43 @@ elements.newSetBtn.addEventListener('click', () => {
 });
 
 elements.saveSetBtn.addEventListener('click', async () => {
-    syncCurrentCard();
+    await persistCurrentSet();
+});
 
-    const title = elements.setTitle.value.trim() || 'Untitled Set';
-    let result;
+elements.sendToVrBtn.addEventListener('click', async () => {
+    let setToPublish = getCurrentSavedSet();
 
-    if (currentSetId) {
-        result = await updateSet(currentSetId, title, currentSet);
-    } else {
-        result = await createSet(title, currentSet);
+    if (!setToPublish || isDirty) {
+        setStatus(elements.saveStatus, 'Saving changes before publishing to VR...', 'info');
+        setToPublish = await persistCurrentSet({ silent: true });
     }
 
+    if (!setToPublish) {
+        return;
+    }
+
+    const result = await publishSetToVr(setToPublish.id);
     if (!result || !result.ok) {
-        window.alert(`Error saving set: ${result?.error || 'Unknown error'}`);
+        setStatus(
+            elements.vrStatus,
+            `Could not send the set to VR: ${result?.error || 'Unknown error.'}`,
+            'error'
+        );
         return;
     }
 
     await refreshSets();
     loadSet(result.set.id);
-    window.alert('Set saved successfully.');
+    setStatus(
+        elements.vrStatus,
+        `Sent "${result.set.name}" to the VR app.`,
+        'success'
+    );
 });
 
 elements.deleteSetBtn.addEventListener('click', async () => {
     if (!currentSetId) {
-        window.alert('No saved set is currently selected.');
+        setStatus(elements.saveStatus, 'Select a saved set before deleting.', 'error');
         return;
     }
 
@@ -539,9 +726,12 @@ elements.deleteSetBtn.addEventListener('click', async () => {
     }
 
     const result = await deleteSet(currentSetId);
-
     if (!result.ok) {
-        window.alert(`Error deleting set: ${result.error}`);
+        setStatus(
+            elements.saveStatus,
+            `Delete failed: ${result.error}`,
+            'error'
+        );
         return;
     }
 
@@ -553,7 +743,7 @@ elements.deleteSetBtn.addEventListener('click', async () => {
         resetEditorState();
     }
 
-    window.alert('Set deleted successfully.');
+    setStatus(elements.saveStatus, 'Set deleted.', 'success');
 });
 
 document.addEventListener('DOMContentLoaded', initializePage);

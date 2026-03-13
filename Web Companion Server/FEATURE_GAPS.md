@@ -2,54 +2,66 @@
 
 Purpose: the web companion dashboard should let users create and edit their own flashcard sets, then send those sets to the Unity VR app for rehearsal.
 
-This file lists the remaining gaps after the current toolbar and local save-flow fixes.
+This file lists the major gaps that still remain after the current pass, which added:
 
-## Highest-Priority Gaps
+- a real `Send To VR` action in the dashboard
+- published-set endpoints for Unity consumption
+- a first Unity import path from the companion server
+- basic request validation and a health endpoint
+- per-card saved font-size metadata
+- unsaved-change state in the dashboard
 
-- Unity handoff is still missing. The dashboard can save sets locally, but there is no explicit "Send to VR" action, no Unity-facing sync endpoint, and no import flow implemented on the Unity side.
-- The formatting contract between web and Unity is undefined. The editor stores HTML from `contenteditable`, while the Unity app currently expects plain string values and TextMeshPro-friendly content. Lists, links, colors, and inline HTML styles need a translation layer before they can render reliably in VR.
-- The font-size controls are editor-level only. The `+`, `-`, and numeric font-size controls change the browser editor presentation, but that size is not serialized into each saved card.
-- There is no validation around what formatting is allowed. Users can save rich HTML, but the project does not yet define which markup is supported end to end.
+## Highest-Priority Remaining Gaps
+
+- The rich-text contract is only partially complete. The server now converts authored HTML into a Unity-friendly export format, but that translation is intentionally conservative and does not preserve every possible browser formatting edge case.
+- Links are exported as display text only. There is no interactive link behavior in Unity.
+- The Unity app currently imports published sets into the set list, but it does not yet auto-open the active published set or surface sync status in-scene.
+- The companion server still stores authored content as browser HTML, which keeps the editor simple but means the authoring format and the VR export format are still different representations.
 
 ## Authoring Workflow Gaps
 
-- No autosave or unsaved-change indicator.
+- No autosave or revision history.
 - No duplicate-card or duplicate-set action.
 - No drag-and-drop or manual reordering for cards.
 - No drag-and-drop or manual reordering for sets.
 - No card search, set search, tags, or filtering.
 - No import/export workflow for JSON, CSV, or text outlines.
-- No preview that shows how a card will look once rendered in Unity.
-- No explicit way to remove or edit an existing link besides editing the raw rich text directly.
+- No preview that shows the exact Unity-rendered version of a card before publishing.
+- No explicit link editor for updating or removing existing links beyond normal rich-text editing.
 - No keyboard shortcut layer for common editor actions.
 
 ## Dashboard UX Gaps
 
-- Success and error handling still relies on browser `alert()` and `confirm()` dialogs instead of inline notifications.
-- There is no empty-state guidance for first-time users.
-- There are no loading states while requests are in flight.
+- Destructive confirmations still rely on browser `confirm()` dialogs.
+- There is still no true loading state for long-running requests beyond inline status text.
 - There is no per-card metadata such as speaker notes, timing, tags, or rehearsal cues.
-- There is no accessibility pass for keyboard-only editing, focus states, screen readers, or color contrast in the editing tools.
+- There is no accessibility pass for keyboard-only editing, focus management, screen readers, or color contrast tuning.
 
 ## Server and Data Gaps
 
 - Storage is still a single local JSON file (`data/db.json`), so there is no multi-user support, backup strategy, version history, or conflict handling.
-- There is no request validation for limits such as maximum set size, maximum card count, or payload size beyond the basic body-parser cap.
-- Saved HTML is not sanitized before storage or reuse, which is risky if this app ever stops being strictly local.
-- There is no API contract versioning for future Unity integration.
-- There is no health check or diagnostics endpoint for the companion server.
+- HTML sanitization is basic and intentionally narrow. It removes obvious dangerous content and preserves only the formatting the app currently cares about, but it is not a full sanitizer for hostile input.
+- There is no authentication or access control on the companion server.
+- There is no server-side audit trail showing who changed or published a set.
+
+## Unity Integration Gaps
+
+- The Unity import URL is still configured manually in the Inspector, which is necessary for local development but not a polished device-pairing story.
+- There is no in-VR refresh action, sync error UI, or retry flow beyond the current startup fetch and demo fallback.
+- The active published set is not automatically loaded into the flashcard session.
+- There is no end-to-end validation that authored formatting renders exactly as expected in TextMeshPro across all supported cards.
 
 ## Engineering Gaps
 
-- The editor is still built on `document.execCommand`, which works for this prototype but is deprecated and brittle across browsers.
+- The browser editor still relies on `document.execCommand`, which remains workable for this prototype but is deprecated and browser-fragile.
 - There are no automated tests for the API.
 - There are no automated tests for the browser editor behavior.
-- There is no end-to-end test that verifies a set authored in the dashboard can be consumed by the Unity app.
+- There are no automated tests for the Unity import/export contract.
 
 ## Recommended Next Steps
 
-1. Define a strict flashcard content schema that Unity can render, including which formatting features are supported.
-2. Implement a real Unity sync path, either by having Unity fetch `/api/sets` directly or by adding an explicit export/send endpoint designed for the VR app.
-3. Persist formatting in a Unity-safe way, especially font sizing and any rich-text features that need to survive round-tripping.
-4. Add unsaved-change state, inline notifications, and a first-time-user flow so the dashboard behaves like a real authoring tool instead of a prototype.
-5. Add basic automated coverage for create, update, delete, and formatting-related persistence.
+1. Add a Unity-side active-set loader so publishing from the dashboard can update the in-session flashcard deck directly, not just the available set list.
+2. Add a Unity preview/export preview inside the dashboard so authors can see how formatting will render before publishing.
+3. Replace the current HTML-first storage model with a stricter intermediate card schema once the supported formatting surface is settled.
+4. Add automated API coverage for create, update, publish, delete, and Unity export conversion.
+5. Add import/export tools so sets can move in and out of the dashboard without manual re-entry.

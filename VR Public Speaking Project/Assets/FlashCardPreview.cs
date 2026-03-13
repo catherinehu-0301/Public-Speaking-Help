@@ -42,6 +42,16 @@ public class FlashCardPreview : MonoBehaviour
 
     public void UpdateCardPreview()
     {
+        for (int childIndex = this.transform.childCount - 1; childIndex >= 0; childIndex--)
+        {
+            Transform child = this.transform.GetChild(childIndex);
+
+            if (child.GetComponent<CardFlip>() != null)
+            {
+                Destroy(child.gameObject);
+            }
+        }
+
         foreach(Dictionary<string, string> card in flashcards)
         {
             GameObject previewCard = Instantiate(previewCardPrefab, this.transform);
