@@ -501,6 +501,15 @@ function exportUnitySet(set) {
     };
 }
 
+function describeRequestSource(req) {
+    const forwardedFor = req.headers['x-forwarded-for'];
+    const forwardedIp = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor;
+    const remoteIp = forwardedIp || req.ip || req.socket?.remoteAddress || 'unknown-ip';
+    const userAgent = req.get('user-agent') || 'unknown-agent';
+
+    return `ip=${remoteIp} ua="${userAgent}"`;
+}
+
 function startDiscoveryResponder(httpPort) {
     const socket = dgram.createSocket('udp4');
 
@@ -513,6 +522,7 @@ function startDiscoveryResponder(httpPort) {
             return;
         }
 
+        console.log(`[VR Sync] LAN discovery probe received from ${remoteInfo.address}:${remoteInfo.port}. Responding with HTTP port ${httpPort}.`);
         const payload = Buffer.from(`${DISCOVERY_RESPONSE_PREFIX}${httpPort}`);
         socket.send(payload, remoteInfo.port, remoteInfo.address, (error) => {
             if (error) {
@@ -598,6 +608,10 @@ app.post('/api/sets/:id/send-to-vr', (req, res) => {
     db.vr.activeSetId = set.id;
     persistDB();
 
+    console.log(
+        `[VR Sync] Published "${set.name}" (${set.id}) for Unity. Active VR set is now ${db.vr.activeSetId}. Unity will receive it on the next sync request.`
+    );
+
     return res.json({
         ok: true,
         set,
@@ -613,6 +627,10 @@ app.get('/api/vr/sets', (req, res) => {
         .filter((set) => set.sentToVr)
         .map(exportUnitySet);
 
+    console.log(
+        `[VR Sync] /api/vr/sets requested by ${describeRequestSource(req)}. Returning ${publishedSets.length} published set(s). Active set: ${db.vr.activeSetId || 'none'}.`
+    );
+
     res.json({
         schemaVersion: 1,
         generatedAt: now(),
@@ -624,8 +642,15 @@ app.get('/api/vr/sets', (req, res) => {
 app.get('/api/vr/active-set', (req, res) => {
     const set = db.vr.activeSetId ? findSetById(db.vr.activeSetId) : null;
     if (!set || !set.sentToVr) {
+        console.log(
+            `[VR Sync] /api/vr/active-set requested by ${describeRequestSource(req)}, but there is no active published set.`
+        );
         return res.status(404).json({ ok: false, error: 'No active VR set found' });
     }
+
+    console.log(
+        `[VR Sync] /api/vr/active-set requested by ${describeRequestSource(req)}. Returning "${set.name}" (${set.id}).`
+    );
 
     return res.json({
         ok: true,
