@@ -1,18 +1,72 @@
 {
   "name": "web-companion-server",
   "version": "1.0.0",
-  "main": "server.js",
+  "description": "StageNotes web companion and desktop app for Public-Speaking-Help.",
+  "main": "electron/main.js",
+  "private": true,
   "scripts": {
     "start": "node server.js",
+    "desktop": "electron .",
+    "dist": "electron-builder --mac dmg",
+    "dist:all": "electron-builder --mac dmg --win nsis --arm64 --x64",
+    "dist:dir": "electron-builder --dir",
+    "dist:mac": "electron-builder --mac dmg",
+    "dist:mac:arm64": "electron-builder --mac dmg --arm64",
+    "dist:mac:x64": "electron-builder --mac dmg --x64",
+    "dist:win": "electron-builder --win nsis",
+    "dist:win:arm64": "electron-builder --win nsis --arm64",
+    "dist:win:x64": "electron-builder --win nsis --x64",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "electron": "^37.0.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.publicspeakinghelp.stagenotes",
+    "productName": "StageNotes",
+    "asar": true,
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "public/**/*",
+      "server.js",
+      "data/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "build/icon.png",
+      "target": [
+        "dmg"
+      ],
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "dmg": {
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "${productName}-Setup-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }

@@ -12,7 +12,7 @@ app.use(bodyParser.json({ limit: '2mb' }));
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const DB_FILE = process.env.DB_FILE || path.join(__dirname, 'data', 'db.json');
+const DEFAULT_DB_FILE = path.join(__dirname, 'data', 'db.json');
 const DEFAULT_FONT_SIZE = 12;
 const LIMITS = {
     maxSetNameLength: 120,
@@ -22,6 +22,10 @@ const LIMITS = {
 const DISCOVERY_PORT = Number.parseInt(process.env.DISCOVERY_PORT || '41234', 10);
 const DISCOVERY_REQUEST_MESSAGE = 'stage-notes-discovery';
 const DISCOVERY_RESPONSE_PREFIX = 'stage-notes-discovery-response:';
+let dbFilePath = process.env.DB_FILE || DEFAULT_DB_FILE;
+let db = createEmptyDB();
+let httpServer = null;
+let discoverySocket = null;
 
 function createEmptyDB() {
     return {
@@ -158,7 +162,7 @@ function normalizeDB(data) {
 
 function loadDB() {
     try {
-        const parsed = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+        const parsed = JSON.parse(fs.readFileSync(dbFilePath, 'utf8'));
         return normalizeDB(parsed);
     } catch {
         return createEmptyDB();
@@ -166,10 +170,17 @@ function loadDB() {
 }
 
 function saveDB(data) {
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+    fs.mkdirSync(path.dirname(dbFilePath), { recursive: true });
+    fs.writeFileSync(dbFilePath, JSON.stringify(data, null, 2));
 }
 
-let db = loadDB();
+function configureRuntime(options = {}) {
+    dbFilePath = options.dbFile || process.env.DB_FILE || DEFAULT_DB_FILE;
+    db = loadDB();
+    return {
+        dbFilePath,
+    };
+}
 
 function persistDB() {
     db.lastUpdated = now();
@@ -511,10 +522,21 @@ function describeRequestSource(req) {
 }
 
 function startDiscoveryResponder(httpPort) {
+    if (discoverySocket) {
+        return discoverySocket;
+    }
+
     const socket = dgram.createSocket('udp4');
+    discoverySocket = socket;
 
     socket.on('error', (error) => {
         console.warn(`LAN discovery responder error: ${error.message}`);
+    });
+
+    socket.on('close', () => {
+        if (discoverySocket === socket) {
+            discoverySocket = null;
+        }
     });
 
     socket.on('message', (message, remoteInfo) => {
@@ -534,6 +556,18 @@ function startDiscoveryResponder(httpPort) {
     socket.bind(DISCOVERY_PORT, () => {
         console.log(`LAN discovery responder listening on udp://0.0.0.0:${DISCOVERY_PORT}`);
     });
+
+    return socket;
+}
+
+function stopDiscoveryResponder() {
+    if (!discoverySocket) {
+        return;
+    }
+
+    const socket = discoverySocket;
+    discoverySocket = null;
+    socket.close();
 }
 
 app.get('/api/health', (req, res) => {
@@ -675,12 +709,83 @@ app.delete('/api/sets/:id', (req, res) => {
     return res.json({ ok: true });
 });
 
-if (require.main === module) {
-    const PORT = Number.parseInt(process.env.PORT || '3000', 10);
-    app.listen(PORT, '0.0.0.0', () => {
-        console.log(`Server is running on port ${PORT}`);
-        startDiscoveryResponder(PORT);
+function startServer(options = {}) {
+    if (httpServer) {
+        const address = httpServer.address();
+        return Promise.resolve({
+            server: httpServer,
+            host: options.host || '0.0.0.0',
+            port: typeof address === 'object' && address ? address.port : null,
+            dbFilePath,
+        });
+    }
+
+    const parsedPort = Number.parseInt(
+        String(options.port ?? process.env.PORT ?? '3000'),
+        10
+    );
+    const port = Number.isNaN(parsedPort) ? 3000 : parsedPort;
+    const host = options.host || '0.0.0.0';
+
+    configureRuntime({ dbFile: options.dbFile });
+
+    return new Promise((resolve, reject) => {
+        const server = app.listen(port, host, () => {
+            httpServer = server;
+            const address = server.address();
+            const actualPort = typeof address === 'object' && address ? address.port : port;
+
+            console.log(`Server is running on port ${actualPort}`);
+
+            if (options.enableDiscovery !== false) {
+                startDiscoveryResponder(actualPort);
+            }
+
+            resolve({
+                server,
+                host,
+                port: actualPort,
+                dbFilePath,
+            });
+        });
+
+        server.on('error', (error) => {
+            if (httpServer === server) {
+                httpServer = null;
+            }
+
+            reject(error);
+        });
     });
 }
 
-module.exports = { app };
+function stopServer() {
+    stopDiscoveryResponder();
+
+    if (!httpServer) {
+        return Promise.resolve();
+    }
+
+    const server = httpServer;
+    httpServer = null;
+
+    return new Promise((resolve, reject) => {
+        server.close((error) => {
+            if (error) {
+                reject(error);
+                return;
+            }
+
+            resolve();
+        });
+    });
+}
+
+if (require.main === module) {
+    startServer().catch((error) => {
+        console.error(`Failed to start server: ${error.message}`);
+        process.exitCode = 1;
+    });
+}
+
+module.exports = { app, configureRuntime, startServer, stopServer };
