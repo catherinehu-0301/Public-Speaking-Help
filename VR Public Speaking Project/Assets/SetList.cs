@@ -84,8 +84,10 @@ public class SetList : MonoBehaviour
     private bool hasLoadedRemoteSets;
     private bool isFetchingRemoteSets;
     private bool hasWarnedAboutLoopbackUrl;
+    private bool hasStarted;
     private string lastRemoteSignature = string.Empty;
     private string discoveredCompanionBaseUrl = string.Empty;
+    private Coroutine fetchCoroutine;
     private Coroutine pollingCoroutine;
 
     public void GetSetData()
@@ -95,7 +97,7 @@ public class SetList : MonoBehaviour
             return;
         }
 
-        StartCoroutine(FetchSetData());
+        fetchCoroutine = StartCoroutine(FetchSetData());
     }
 
     private IEnumerator FetchSetData()
@@ -117,12 +119,14 @@ public class SetList : MonoBehaviour
         {
             Debug.LogWarning("No reachable StageNotes URL is configured for VR set sync.");
             HandleRemoteUnavailable();
-            isFetchingRemoteSets = false;
+            FinishFetch();
             yield break;
         }
 
         using (UnityWebRequest request = UnityWebRequest.Get(requestUrl))
         {
+            Debug.Log($"Requesting StageNotes VR sets from {requestUrl}.");
+
             request.timeout = requestTimeoutSeconds;
             yield return request.SendWebRequest();
 
@@ -131,7 +135,7 @@ public class SetList : MonoBehaviour
                 Debug.LogWarning($"Failed to fetch VR sets from {requestUrl}: {request.error}");
                 ClearDiscoveredUrlIfUsed(requestUrl);
                 HandleRemoteUnavailable();
-                isFetchingRemoteSets = false;
+                FinishFetch();
                 yield break;
             }
 
@@ -141,22 +145,24 @@ public class SetList : MonoBehaviour
             {
                 Debug.LogWarning("The companion server returned an invalid VR sets payload.");
                 HandleRemoteUnavailable();
-                isFetchingRemoteSets = false;
+                FinishFetch();
                 yield break;
             }
+
+            Debug.Log($"StageNotes VR sync returned {response.sets.Length} published set(s). Active set: {response.activeSetId ?? "none"}.");
 
             if (response.sets.Length == 0)
             {
                 Debug.Log("No published VR sets were returned by the companion server.");
                 ApplyNoPublishedSets();
-                isFetchingRemoteSets = false;
+                FinishFetch();
                 yield break;
             }
 
             ApplyRemoteSets(response);
         }
 
-        isFetchingRemoteSets = false;
+        FinishFetch();
     }
 
     private void ApplyRemoteSets(VrSetResponse response)
@@ -278,8 +284,15 @@ public class SetList : MonoBehaviour
     {
         ClearSetList();
 
-        if (setCardPrefab == null || setCardList == null)
+        if (setCardPrefab == null)
         {
+            Debug.LogWarning("Cannot display StageNotes sets because SetList.setCardPrefab is not assigned.");
+            return;
+        }
+
+        if (setCardList == null)
+        {
+            Debug.LogWarning("Cannot display StageNotes sets because SetList.setCardList is not assigned.");
             return;
         }
 
@@ -287,6 +300,11 @@ public class SetList : MonoBehaviour
         {
             GameObject setCard = Instantiate(setCardPrefab, setCardList);
             SetButton setButton = setCard.GetComponent<SetButton>();
+            if (setButton == null)
+            {
+                Debug.LogWarning("Cannot display a StageNotes set because the set card prefab is missing a SetButton component.");
+                continue;
+            }
 
             setButton.UpdateSetButton(setName, sets[setName]);
         }
@@ -294,23 +312,39 @@ public class SetList : MonoBehaviour
 
     void Start()
     {
+        hasStarted = true;
+
         if (loadRemoteSetsOnStart)
         {
             GetSetData();
-
-            if (pollForRemoteUpdates)
-            {
-                pollingCoroutine = StartCoroutine(PollRemoteSets());
-            }
-
+            EnsurePollingStarted();
             return;
         }
 
         LoadDemoSet();
     }
 
+    void OnEnable()
+    {
+        if (!hasStarted || !loadRemoteSetsOnStart)
+        {
+            return;
+        }
+
+        GetSetData();
+        EnsurePollingStarted();
+    }
+
     void OnDisable()
     {
+        if (fetchCoroutine != null)
+        {
+            StopCoroutine(fetchCoroutine);
+            fetchCoroutine = null;
+        }
+
+        isFetchingRemoteSets = false;
+
         if (pollingCoroutine != null)
         {
             StopCoroutine(pollingCoroutine);
@@ -352,6 +386,22 @@ public class SetList : MonoBehaviour
         hasLoadedRemoteSets = true;
         lastRemoteSignature = "empty";
         UpdateSetList();
+    }
+
+    private void FinishFetch()
+    {
+        isFetchingRemoteSets = false;
+        fetchCoroutine = null;
+    }
+
+    private void EnsurePollingStarted()
+    {
+        if (!pollForRemoteUpdates || pollingCoroutine != null)
+        {
+            return;
+        }
+
+        pollingCoroutine = StartCoroutine(PollRemoteSets());
     }
 
     private void HandleRemoteUnavailable()

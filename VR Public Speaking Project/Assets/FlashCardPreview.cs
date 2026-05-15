@@ -28,16 +28,34 @@ public class FlashCardPreview : MonoBehaviour
     public GameObject settings;
 
     public GameObject previewCardPrefab;
+    public bool hideSetListOnConfirm = true;
+    public bool keepSettingsVisibleOnConfirm = true;
 
     public void ConfirmFlashCards()
     {
-        flashCards.cards = flashcards;
-        flashCards.ResetCards();
+        ResolveFlashCardTarget();
 
-        // hide all panels
-        setList.SetActive(false);
-        settings.SetActive(false);
-        this.gameObject.SetActive(false);
+        if (flashCards != null)
+        {
+            flashCards.cards = flashcards;
+            flashCards.ResetCards();
+        }
+        else
+        {
+            Debug.LogWarning("Could not apply selected flashcards because FlashCardPreview.flashCards is not assigned.");
+        }
+
+        if (hideSetListOnConfirm && setList != null)
+        {
+            setList.SetActive(false);
+        }
+
+        if (keepSettingsVisibleOnConfirm && settings != null)
+        {
+            settings.SetActive(true);
+        }
+
+        gameObject.SetActive(false);
     }
 
     public void UpdateCardPreview()
@@ -70,5 +88,15 @@ public class FlashCardPreview : MonoBehaviour
     void Update()
     {
         
+    }
+
+    private void ResolveFlashCardTarget()
+    {
+        if (flashCards != null)
+        {
+            return;
+        }
+
+        flashCards = UnityEngine.Object.FindFirstObjectByType<FlashCard>(FindObjectsInactive.Include);
     }
 }

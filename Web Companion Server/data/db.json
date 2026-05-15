@@ -5,18 +5,18 @@
       "name": "Testing",
       "cards": [
         {
-          "front": "This is Catherine, today is march 19th 2026 and it is currently 5:14 PM in PST time",
-          "back": "i go on spring break in about a week , when i get back from spring break i am taking my driving test and i am a little scared.",
+          "front": "This is Catherine, today is april 26th 2026.",
+          "back": "Hope you have a good day/night, thanks. :)",
           "frontFontSize": 12,
           "backFontSize": 12
         }
       ],
       "sentToVr": true,
-      "lastSentToVr": 1776385575349,
-      "lastUpdated": 1776385575349
+      "lastSentToVr": 1776619431400,
+      "lastUpdated": 1777103424424
     }
   ],
-  "lastUpdated": 1776385575349,
+  "lastUpdated": 1777103424424,
   "vr": {
     "activeSetId": "74af90ff-b8a8-4041-baba-c2137e8ff543"
   }

@@ -86161,7 +86161,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2218496723442559053, guid: d6878e1999eb4b44a9f5a263af86c185, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -13.762
+      value: -13.588
       objectReference: {fileID: 0}
     - target: {fileID: 2218496723442559053, guid: d6878e1999eb4b44a9f5a263af86c185, type: 3}
       propertyPath: m_LocalRotation.w
@@ -102737,8 +102737,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2df10518b5e427641aee3142f818e7b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  loadRemoteSetsOnStart: 1
+  useDemoSetWhenRemoteUnavailable: 1
+  autoApplyActiveRemoteSet: 1
+  pollForRemoteUpdates: 1
+  remoteRefreshIntervalSeconds: 5
+  autoDiscoverCompanionOnLan: 1
+  companionDiscoveryPort: 41234
+  companionDiscoveryTimeoutSeconds: 2
+  companionServerPort: 3000
+  companionVrSetsUrl: http://127.0.0.1:3000/api/vr/sets
+  requestTimeoutSeconds: 5
   setCardList: {fileID: 1659923635}
   setCardPrefab: {fileID: 7552179991468417812, guid: cb7ddfc96e631e348bb359219c3228f3, type: 3}
+  flashCardTarget: {fileID: 0}
+  flashCardPreview: {fileID: 0}
 --- !u!4 &1613019672 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2100208028559941110, guid: f71041fd118fbb34aa9d2dd6a1d96fce, type: 3}
